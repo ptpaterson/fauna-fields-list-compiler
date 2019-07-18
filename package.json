@@ -2,6 +2,10 @@
   "name": "fauna-fields-list-compile",
   "version": "0.0.1",
   "description": "Utility to produce FaunaDB queries from a fields list.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ptpaterson/fauna-fields-list-compiler"
+  },
   "main": "src/index.js",
   "scripts": {
     "example-apollo": "nodemon node ./examples/apollo/server.js",
