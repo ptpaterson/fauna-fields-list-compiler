@@ -24,7 +24,7 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [ ] pluggable way to do resolvers/compilers with directives
 - [ ] interfaces & unions
 
-### Standalone Usage
+## Standalone Usage
 
 The library provides functions that convert the data model into a recursive query builder. They take the data model and a starting FaunaDB class. From there they can take a selection set (or a "fields list") and a starting `Ref`.
 
@@ -66,7 +66,7 @@ client
   .catch(e => console.error(e));
 ```
 
-#### GraphQL Usage
+### GraphQL Usage
 
 A full [example with Apollo Server (V2.6)](examples/apollo) shows how to use with GraphQL.
 
@@ -97,7 +97,7 @@ const resolvers = {
 /*...*/
 ```
 
-#### Data Models
+## Data Models
 
 The data model is a stripped down version of the database schema. The following data model is used in the examples:
 
@@ -116,7 +116,7 @@ const dataModel = {
 };
 ```
 
-#### Fields List
+## Fields List
 
 The fields list is a map of the fields that you want selected.
 
