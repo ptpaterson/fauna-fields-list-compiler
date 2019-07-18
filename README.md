@@ -2,7 +2,7 @@
 
 ![npm](https://img.shields.io/npm/v/fauna-fields-list-compile.svg)
 
-A utility to produce FaunaDB queries from a fields list. It is specifically meant to make GraphQL queries easy by compiling root queries into a single FQL query. However, it should be useful in other applications, too.
+A POC for a GraphQL to FaunaDB FQL compiler and general utility to produce FaunaDB queries from a fields list.
 
 #### Motivation
 
