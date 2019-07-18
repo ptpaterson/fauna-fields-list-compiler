@@ -1,0 +1,22 @@
+{
+  "name": "fauna-fields-list-compile",
+  "version": "0.0.1",
+  "description": "Utility to produce FaunaDB queries from a fields list.",
+  "main": "src/index.js",
+  "scripts": {
+    "example-apollo": "nodemon node ./examples/apollo/server.js",
+    "example-standalone": "node ./examples/standalone/index.js"
+  },
+  "author": "Paul Paterson",
+  "license": "MIT",
+  "dependencies": {
+    "faunadb": "^2.7.0"
+  },
+  "devDependencies": {
+    "apollo-server": "^2.6.9",
+    "dotenv": "^8.0.0",
+    "graphql": "^14.4.2",
+    "graphql-fields": "^2.0.3",
+    "nodemon": "^1.19.1"
+  }
+}
