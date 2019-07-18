@@ -23,6 +23,7 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [ ] converter for GraphQL Schema AST to data model
 - [ ] pluggable way to do resolvers/compilers with directives
 - [ ] interfaces & unions
+- [ ] Typescript? (I think types would help)
 
 ## Standalone Usage
 
@@ -66,7 +67,7 @@ client
   .catch(e => console.error(e));
 ```
 
-### GraphQL Usage
+## GraphQL Usage
 
 A full [example with Apollo Server (V2.6)](examples/apollo) shows how to use with GraphQL.
 
