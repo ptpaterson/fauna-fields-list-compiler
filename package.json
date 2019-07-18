@@ -1,6 +1,6 @@
 {
   "name": "fauna-fields-list-compile",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Utility to produce FaunaDB queries from a fields list.",
   "repository": {
     "type": "git",
