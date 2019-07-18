@@ -14,13 +14,13 @@
   "author": "Paul Paterson",
   "license": "MIT",
   "dependencies": {
-    "faunadb": "^2.7.0"
+    "faunadb": "^2.7.0",
+    "graphql-fields": "^2.0.3"
   },
   "devDependencies": {
     "apollo-server": "^2.6.9",
     "dotenv": "^8.0.0",
     "graphql": "^14.4.2",
-    "graphql-fields": "^2.0.3",
     "nodemon": "^1.19.1"
   }
 }
