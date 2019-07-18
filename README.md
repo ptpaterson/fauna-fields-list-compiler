@@ -10,7 +10,7 @@ FaunaDB's query language is, FQL, is particularly well suited for getting a bunc
 
 By compiling the GraphQL query directly into a single FQL query, we can make the database do all the work for us in one trip. All we need is an understanding of the schema (database and GraphQL) and the query AST. We can get the AST from the now [demystified `info` argument](https://www.prisma.io/blog/graphql-server-basics-demystifying-the-info-argument-in-graphql-resolvers-6f26249f613a)!
 
-This project started off specifically as a way to compile GraphQL queries down to a single FQL query. I hope this project can be a proof of concept for compiling GraphQL queries
+This project started off specifically as a way to compile GraphQL queries down to a single FQL query. I hope this project can be a proof of concept for compiling GraphQL queries as well as just building FQL queries rapidly.
 
 #### TODO List
 
