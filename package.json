@@ -1,13 +1,13 @@
 {
   "name": "fauna-fields-list-compile",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "A POC for a GraphQL to FaunaDB FQL compiler and general utility to produce FaunaDB queries from a fields list.",
   "repository": {
     "type": "git",
     "url": "https://github.com/ptpaterson/fauna-fields-list-compiler"
   },
   "main": "dist/index.js",
-  "files":[
+  "files": [
     "/dist"
   ],
   "umd:main": "dist/faunadb-scaffold.umd.production.js",
