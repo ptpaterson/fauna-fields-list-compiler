@@ -4,7 +4,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // External(ish) Packages
 const { query: q, Client } = require("faunadb");
-const { createObjectCompiler, createListCompiler, createPageCompiler } = require("../../src");
+const { createObjectCompiler, createListCompiler, createPageCompiler } = require("../../dist");
 
 // Create the FaunaDB client
 const client = new Client({ secret: process.env.FAUNADB_SECRET });
