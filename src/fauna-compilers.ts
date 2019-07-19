@@ -1,6 +1,4 @@
-import { query as q } from "faunadb";
-import graphqlQueryFields from "graphql-fields";
-import { GraphQLFieldResolver } from "graphql";
+import { query as q, Expr, ExprArg } from "faunadb";
 
 export type DataModel = {
   [key: string]: {
@@ -18,13 +16,13 @@ export type QueryFields = {
   [key: string]: {} | QueryFields;
 };
 
-export type Compiler = (fields: QueryFields | undefined) => (value: any) => any;
+export type Compiler = (fields: QueryFields | undefined) => (value: Expr) => Expr;
 
 const defaultCompiler: Compiler = () => value => value;
 
 export const createListCompiler = (compiler: Compiler): Compiler => (
   fields: QueryFields | undefined
-) => (refs: any) => q.Map(refs, ref => compiler(fields)(ref));
+) => (collection: ExprArg) => q.Map(collection, (ref: Expr) => compiler(fields)(ref));
 
 export const createObjectCompiler = (
   dataModel: DataModel,
@@ -32,7 +30,7 @@ export const createObjectCompiler = (
 ): Compiler => fields => ref => {
   const instance = q.Get(ref);
 
-  // thunk-ify Compilers and only resolve if needed.  
+  // thunk-ify Compilers and only resolve if needed.
   // Otherwise it would create an infinite loop due to circular references.
   const fieldResolverThunkMap: { [key: string]: () => Compiler } = Object.keys(
     dataModel[className].fields
@@ -78,7 +76,7 @@ export const createObjectCompiler = (
 
 export const createPageCompiler = (listCompiler: Compiler) => (
   fields: QueryFields
-) => (refs: any) => listCompiler(fields.data)(refs);
+) => (set: ExprArg) => listCompiler(fields.data)(set);
 
 export const createTopLevelCompiler = (
   dataModel: DataModel,
