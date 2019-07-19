@@ -29,7 +29,7 @@ This project started off specifically as a way to compile GraphQL queries down t
 
 The library provides functions that convert the data model into a recursive query builder. They take the data model and a starting FaunaDB class. From there they can take a selection set (or a "fields list") and a starting `Ref`.
 
-See the [full example](examples/standalone/index.js).
+See the [full example](https://github.com/ptpaterson/fauna-fields-list-compiler/tree/master/examples/standalone).
 
 ```js
 const {
@@ -69,7 +69,7 @@ client
 
 ## GraphQL Usage
 
-A full [example with Apollo Server (V2.6)](examples/apollo) shows how to use with GraphQL.
+A full [example with Apollo Server (V2.6)](https://github.com/ptpaterson/fauna-fields-list-compiler/tree/master/examples/apollo) shows how to use with GraphQL.
 
 The standalone usage can be applied to GraphQL resolver anywhere you like, but there is an additional helper to build root queries.
 
