@@ -4,7 +4,7 @@ import graphqlQueryFields from "graphql-fields";
 import { createTopLevelCompiler, DataModel } from "./fauna-compilers";
 import { GraphQLFieldResolver } from "graphql";
 
-class FaunaGraphQLClient {
+export class FaunaGraphQLClient {
   constructor(private client: Client) {}
 
   createRootResolver(models: DataModel, className: string, indexName: string) {
@@ -24,5 +24,3 @@ class FaunaGraphQLClient {
     return resolver;
   }
 }
-
-module.exports = FaunaGraphQLClient;
