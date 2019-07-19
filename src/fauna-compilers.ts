@@ -32,7 +32,9 @@ export const createObjectCompiler = (
 ): Compiler => fields => ref => {
   const instance = q.Get(ref);
 
-  const fieldResolverThunkMap: { [key: string]: Compiler } = Object.keys(
+  // thunk-ify Compilers and only resolve if needed.  
+  // Otherwise it would create an infinite loop due to circular references.
+  const fieldResolverThunkMap: { [key: string]: () => Compiler } = Object.keys(
     dataModel[className].fields
   ).reduce((result, key) => {
     const value = dataModel[className].fields[key];
@@ -67,7 +69,7 @@ export const createObjectCompiler = (
 
     return {
       ...result,
-      [key]: fieldResolverThunkMap[key](fields)(fields![key])(selector)
+      [key]: fieldResolverThunkMap[key]()(fields![key])(selector)
     };
   }, {});
 
