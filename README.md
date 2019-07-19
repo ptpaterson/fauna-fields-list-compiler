@@ -18,12 +18,12 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [x] resolve properties containing a `Ref` and get their properties
 - [x] resolve embedded objects
 - [x] compile GraphQL query to single FQL query
+- [X] Typescript!
 - [ ] resolve instance `id`
 - [ ] resolve reverse refs (index on other collection)
 - [ ] converter for GraphQL Schema AST to data model
 - [ ] pluggable way to do resolvers/compilers with directives
 - [ ] interfaces & unions
-- [ ] Typescript? (I think types would help)
 
 ## Standalone Usage
 
