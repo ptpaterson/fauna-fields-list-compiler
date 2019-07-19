@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 // External(ish) Packages
 const { ApolloServer } = require('apollo-server');
 const { Client } = require('faunadb');
-const { FaunaGraphQLClient } = require('../../src');
+const { FaunaGraphQLClient } = require('../../dist');
 
 // Internal Packages
 const typeDefs = require('./schema');
