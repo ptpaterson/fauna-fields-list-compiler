@@ -7,6 +7,9 @@
     "url": "https://github.com/ptpaterson/fauna-fields-list-compiler"
   },
   "main": "dist/index.js",
+  "files":[
+    "/dist"
+  ],
   "umd:main": "dist/faunadb-scaffold.umd.production.js",
   "module": "dist/faunadb-scaffold.es.production.js",
   "typings": "dist/index.d.ts",
