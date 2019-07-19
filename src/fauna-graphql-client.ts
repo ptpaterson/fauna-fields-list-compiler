@@ -11,10 +11,10 @@ export class FaunaGraphQLClient {
     const compiler = createTopLevelCompiler(models, className);
 
     const resolver: GraphQLFieldResolver<any, any, any> = (
-      _root,
-      _args,
-      _ctx,
-      info
+      _root: any,
+      _args: any,
+      _ctx: any,
+      info: any
     ) => {
       const refs = q.Paginate(q.Match(q.Index(indexName)));
       const compiledQuery = compiler(graphqlQueryFields(info))(refs);
