@@ -17,8 +17,7 @@
     "example-apollo": "nodemon node ./examples/apollo/server.js",
     "example-standalone": "node ./examples/standalone/index.js",
     "start": "tsdx watch",
-    "build": "tsdx build",
-    "test": "tsdx test"
+    "build": "tsdx build"
   },
   "author": "Paul Paterson",
   "license": "MIT",
