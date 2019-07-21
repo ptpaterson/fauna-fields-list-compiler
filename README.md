@@ -140,7 +140,7 @@ The format is the same as the output from node package [`graphql-fields`](https:
 The following are used in the examples
 
 ```js
-{
+const memberQueryFields = {
   _id: {},
   _ts: {},
   name: {},
