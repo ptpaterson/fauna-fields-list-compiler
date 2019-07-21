@@ -20,6 +20,10 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [x] compile GraphQL query to single FQL query
 - [X] Typescript!
 - [ ] resolve instance `id`
+- [ ] synchronize data model with Fauna gql meta objects.
+- [ ] authorization helpers.
+  - [ ] login, logout
+  - [ ] RBAC
 - [ ] resolve reverse refs (index on other collection)
 - [ ] converter for GraphQL Schema AST to data model
 - [ ] pluggable way to do resolvers/compilers with directives
