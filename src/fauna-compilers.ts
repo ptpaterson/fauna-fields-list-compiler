@@ -1,12 +1,12 @@
-import { query as q, Expr, ExprArg } from "faunadb";
+import { query as q, Expr, ExprArg } from 'faunadb';
 
 // Types
 export type DataModel = {
   [key: string]: {
     fields: {
       [key: string]: {
-        resolveType?: "default" | "ref" | string;
-        type: "List" | string;
+        resolveType?: 'default' | 'ref' | string;
+        type: 'List' | string;
         of?: string;
       };
     };
@@ -17,43 +17,35 @@ export type QueryFields = {
   [key: string]: {} | QueryFields;
 };
 
-export type Compiler = (
-  fields: QueryFields | undefined
-) => (value: Expr) => Expr;
+export type Compiler = (fields: QueryFields | undefined) => (value: Expr) => Expr;
 
 // Compilers
 const defaultCompiler: Compiler = () => value => value;
 
 export const createListCompiler = (compiler: Compiler): Compiler => (
   fields: QueryFields | undefined
-) => (collection: ExprArg) =>
-  q.Map(collection, (ref: Expr) => compiler(fields)(ref));
+) => (collection: ExprArg) => q.Map(collection, (ref: Expr) => compiler(fields)(ref));
 
-export const createObjectCompiler = (
-  dataModel: DataModel,
-  className: string
-): Compiler => {
-
+export const createObjectCompiler = (dataModel: DataModel, className: string): Compiler => {
   // thunk-ify Compilers and only resolve if needed.
   // Otherwise it would create an infinite loop due to circular references.
   const fieldResolverThunkMap: {
     [key: string]: () => Compiler;
   } = Object.keys(dataModel[className].fields).reduce((result, key) => {
-
     // Parse through the data model and build a map of compilers based on the
     // field's type.  That compiler can then be selected via the fields-list.
 
     const value = dataModel[className].fields[key];
-    const resolveType = value.resolveType || "default";
+    const resolveType = value.resolveType || 'default';
     const fieldName = key;
     const fieldType = value.type;
-    const isList = fieldType === "List";
+    const isList = fieldType === 'List';
     const baseFieldType = isList ? value.of! : fieldType;
 
     const getfieldCompiler = (): Compiler =>
-      resolveType === "default"
+      resolveType === 'default'
         ? defaultCompiler
-        : resolveType === "ref"
+        : resolveType === 'ref'
         ? createObjectCompiler(dataModel, baseFieldType)
         : defaultCompiler;
 
@@ -70,11 +62,25 @@ export const createObjectCompiler = (
     const instance = q.Get(ref);
 
     return Object.keys(fields || {}).reduce((result, key) => {
+      if (key === '_id') {
+        return {
+          ...result,
+          _id: q.Select(['id'], ref)
+        };
+      }
+
+      if (key === '_ts') {
+        return {
+          ...result,
+          _ts: q.Select(['ts'], instance)
+        };
+      }
+
       const fieldType = dataModel[className].fields[key].type;
-      const isList = fieldType === "List";
+      const isList = fieldType === 'List';
       const selectExpr = isList
-        ? q.Select(["data", key], instance, [])
-        : q.Select(["data", key], instance, null as any);
+        ? q.Select(['data', key], instance, [])
+        : q.Select(['data', key], instance, null as any);
 
       return {
         ...result,
@@ -84,14 +90,9 @@ export const createObjectCompiler = (
   };
 };
 
-export const createPageCompiler = (listCompiler: Compiler) => (
-  fields: QueryFields
-) => (set: ExprArg) => listCompiler(fields.data)(set);
+export const createPageCompiler = (listCompiler: Compiler) => (fields: QueryFields) => (
+  set: ExprArg
+) => listCompiler(fields.data)(set);
 
-export const createTopLevelCompiler = (
-  dataModel: DataModel,
-  className: string
-) =>
-  createPageCompiler(
-    createListCompiler(createObjectCompiler(dataModel, className))
-  );
+export const createTopLevelCompiler = (dataModel: DataModel, className: string) =>
+  createPageCompiler(createListCompiler(createObjectCompiler(dataModel, className)));

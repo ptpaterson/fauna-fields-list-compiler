@@ -1,7 +1,11 @@
 const { gql } = require('apollo-server');
 
 const typeDefs = gql`
+  scalar Long
+
   type Book {
+    _id: ID!
+    _ts: Long!
     title: String
     author: Member
   }
@@ -18,6 +22,8 @@ const typeDefs = gql`
   }
 
   type Member {
+    _id: ID!
+    _ts: Long!
     name: String
     age: Int
     favorites: [Book]

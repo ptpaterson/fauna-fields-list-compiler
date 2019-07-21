@@ -18,7 +18,7 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [x] resolve properties containing a `Ref` and get their properties
 - [x] resolve embedded objects
 - [x] compile GraphQL query to single FQL query
-- [X] Typescript!
+- [x] Typescript!
 - [ ] resolve `_id` and `_ts` fields
 - [ ] synchronize data model with Fauna gql meta objects.
 - [ ] authorization helpers.
@@ -47,7 +47,7 @@ const dataModel = {
   /*...*/
 };
 
-// query a single object
+// Query a single object
 const memberCompiler = createObjectCompiler(dataModel, 'Member');
 const memberQueryFields = {
   /*...*/
@@ -58,9 +58,8 @@ client
   .then(results => console.log(results))
   .catch(e => console.error(e));
 
-const booksCompiler = createListCompiler(
-  createObjectCompiler(dataModel, 'Book')
-);
+// Query Many
+const booksCompiler = createListCompiler(createObjectCompiler(dataModel, 'Book'));
 const bookQueryFields = {
   /*...*/
 };
@@ -91,11 +90,7 @@ const faunaGraphQLClient = new FaunaGraphQLClient(client);
 const resolvers = {
   Query: {
     books: faunaGraphQLClient.createRootResolver(dataModel, 'Book', 'books'),
-    members: faunaGraphQLClient.createRootResolver(
-      dataModel,
-      'Member',
-      'members'
-    )
+    members: faunaGraphQLClient.createRootResolver(dataModel, 'Member', 'members')
   }
 };
 
@@ -109,13 +104,28 @@ The data model is a stripped down version of the database schema. The following 
 ```js
 const dataModel = {
   Book: {
-    fields: { title: {}, author: { type: 'Member', resolveType: 'ref' } }
+    fields: {
+      _id: { type: 'ID' },
+      _ts: {},
+      title: {},
+      author: { type: 'Member', resolveType: 'ref' }
+    }
   },
   Member: {
     fields: {
+      _id: { type: 'ID' },
+      _ts: {},
       name: {},
       age: {},
+      address: { type: 'Address' },
       favorites: { type: 'List', of: 'Book', resolveType: 'ref' }
+    }
+  },
+  Address: {
+    fields: {
+      street: {},
+      city: {},
+      zip: {}
     }
   }
 };
@@ -130,20 +140,33 @@ The format is the same as the output from node package [`graphql-fields`](https:
 The following are used in the examples
 
 ```js
-const memberQueryFields = {
+{
+  _id: {},
+  _ts: {},
   name: {},
   age: {},
+  address: {
+    street: {},
+    city: {},
+    zip: {}
+  },
   favorites: {
     title: {},
     author: {
+      _id: {},
+      _ts: {},
       name: {}
     }
   }
 };
 
 const bookQueryFields = {
+  _id: {},
+  _ts: {},
   title: {},
   author: {
+    _id: {},
+    _ts: {},
     name: {},
     age: {}
   }
