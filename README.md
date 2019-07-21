@@ -19,7 +19,7 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [x] resolve embedded objects
 - [x] compile GraphQL query to single FQL query
 - [X] Typescript!
-- [ ] resolve instance `id`
+- [ ] resolve `_id` and `_ts` fields
 - [ ] synchronize data model with Fauna gql meta objects.
 - [ ] authorization helpers.
   - [ ] login, logout
