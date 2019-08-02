@@ -16,35 +16,6 @@ const faunaGraphQLClient = new FaunaGraphQLClient(client);
 
 // TODO:  generate models from typeDefs, so we don't have to ourselves
 const dataModel = {
-  Book: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      title: {},
-      author: { type: 'Member', resolveType: 'ref' }
-    }
-  },
-  Member: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      name: {},
-      age: {},
-      address: { type: 'Address' },
-      favorites: { type: 'List', of: 'Book', resolveType: 'ref' }
-    }
-  },
-  Address: {
-    fields: {
-      street: {},
-      city: {},
-      zip: {}
-    }
-  }
-};
-
-
-const dataModel2 = {
   collections: [
     {
       name: "Book",
@@ -86,8 +57,8 @@ const dataModel2 = {
 
 const resolvers = {
   Query: {
-    books: faunaGraphQLClient.createRootResolver(dataModel2, 'Book', 'books'),
-    members: faunaGraphQLClient.createRootResolver(dataModel2, 'Member', 'members')
+    books: faunaGraphQLClient.createRootResolver(dataModel, 'Book', 'books'),
+    members: faunaGraphQLClient.createRootResolver(dataModel, 'Member', 'members')
   }
 };
 
