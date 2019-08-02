@@ -1,5 +1,57 @@
 // Types
-export type DataModel = any;
+interface NamedTypeModel {
+  Named: string;
+}
+
+interface ListTypeModel<
+  T extends NamedTypeModel | NotNullTypeModel<NamedTypeModel>
+> {
+  List: T;
+}
+
+interface NotNullTypeModel<
+  T extends
+    | NamedTypeModel
+    | ListTypeModel<NamedTypeModel>
+    | ListTypeModel<NotNullTypeModel<NamedTypeModel>>
+> {
+  NotNull: T;
+}
+
+type FieldTypeModel =
+  | NamedTypeModel
+  | NotNullTypeModel<NamedTypeModel>
+  | ListTypeModel<NamedTypeModel>
+  | ListTypeModel<NotNullTypeModel<NamedTypeModel>>
+  | NotNullTypeModel<ListTypeModel<NamedTypeModel>>
+  | NotNullTypeModel<ListTypeModel<NotNullTypeModel<NamedTypeModel>>>;
+
+type FieldModel = {
+  name: string;
+  type: FieldTypeModel;
+};
+
+type DirectiveModel = {
+  name: string;
+  args?: { [key: string]: string };
+};
+
+type CollectionModel = {
+  name: string;
+  fields: FieldModel[];
+  directives?: DirectiveModel[];
+};
+
+type IndexModel = {
+  name: string;
+  type: FieldTypeModel;
+  directives?: DirectiveModel[];
+};
+
+export type DataModel = {
+  collections: CollectionModel[];
+  indexes: IndexModel[];
+};
 
 export const getCollectionModel = (
   dataModel: DataModel,
