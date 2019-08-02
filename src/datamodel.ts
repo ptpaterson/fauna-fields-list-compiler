@@ -1,7 +1,10 @@
 // Types
 export type DataModel = any;
 
-export const getCollectionModel = (dataModel: DataModel, collectionName: string) => {
+export const getCollectionModel = (
+  dataModel: DataModel,
+  collectionName: string
+) => {
   const collectionModel = dataModel.collections.find(
     (collectionModel: any) => collectionModel.name === collectionName
   );
@@ -16,7 +19,9 @@ export const getFieldModel = (collectionModel: any, fieldName: string) => {
     (fieldModel: any) => fieldModel.name === fieldName
   );
   if (!fieldModel) {
-    throw new Error(`Field, ${fieldName}, not found in Collection, ${collectionModel.name}`);
+    throw new Error(
+      `Field, ${fieldName}, not found in Collection, ${collectionModel.name}`
+    );
   }
   return fieldModel;
 };
@@ -26,7 +31,10 @@ export const getDirectives = (model: any) => {
   if (!directives) return {};
 
   return directives.reduce(
-    (result: any, directive: any) => ({ ...result, [directive.name]: directive.args || {} }),
+    (result: any, directive: any) => ({
+      ...result,
+      [directive.name]: directive.args || {}
+    }),
     {}
   );
 };
