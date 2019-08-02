@@ -26,8 +26,7 @@ export const createListCompiler = (compiler: Compiler): Compiler => (
 
 export const createObjectCompiler = (
   dataModel: DataModel,
-  collectionName: string,
-  parentFieldName?: string
+  collectionName: string
 ): Compiler => {
   // get some required infos
   const collectionModel = getCollectionModel(dataModel, collectionName);
@@ -57,7 +56,7 @@ export const createObjectCompiler = (
 
       // if not a scalar, build a compiler for the field
       const getfieldCompiler = () =>
-        createObjectCompiler(dataModel, baseFieldType, fieldName);
+        createObjectCompiler(dataModel, baseFieldType);
       const getMaybeListCompiler = () =>
         isList ? createListCompiler(getfieldCompiler()) : getfieldCompiler();
       return {
@@ -68,17 +67,17 @@ export const createObjectCompiler = (
     {}
   );
 
-  return fields => ref => {
-    const instance = collectionIsEmbedded ? ref : q.Get(ref);
+  return fields => value => {
+    const instance = collectionIsEmbedded ? value : q.Get(value);
 
     const inExpr = Object.keys(fields || {}).reduce(
       (result, queryFieldName) => {
-        // **********************************************************************
+        // *********************************************************************
         // System types
         if (queryFieldName === "_id") {
           return {
             ...result,
-            _id: q.Select(["id"], ref)
+            _id: q.Select(["id"], value)
           };
         }
         if (queryFieldName === "_ts") {
@@ -88,14 +87,14 @@ export const createObjectCompiler = (
           };
         }
 
-        // **********************************************************************
+        // *********************************************************************
         // Application Types
         const fieldModel = getFieldModel(collectionModel, queryFieldName);
 
+        // TODO: account for NotNull
         const resolveTypeModel = fieldModel.type;
         const resolveTypeIsList = resolveTypeModel.List != undefined;
 
-        // TODO: account for NotNull
         const selectExpr = collectionIsEmbedded
           ? resolveTypeIsList
             ? q.Select([queryFieldName], instance, [])
@@ -105,6 +104,8 @@ export const createObjectCompiler = (
           : q.Select(["data", queryFieldName], instance, null as any);
 
         // for scalars
+        // Resolve scalars early.  They are identified by not being in the
+        // dataModel
         if (!fieldCompilerThunkMap[queryFieldName]) {
           return {
             ...result,
