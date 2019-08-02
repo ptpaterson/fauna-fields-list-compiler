@@ -43,10 +43,51 @@ const dataModel = {
   }
 };
 
+
+const dataModel2 = {
+  collections: [
+    {
+      name: "Book",
+      fields: [
+        { name: "_id", type: { Named: "ID" } },
+        { name: "_ts", type: { Named: "Int" } },
+        { name: "title", type: { Named: "String" } },
+        { name: "author", type: { Named: "Member" } }
+      ]
+    },
+    {
+      name: "Member",
+      fields: [
+        { name: "_id", type: { Named: "ID" } },
+        { name: "_ts", type: { Named: "Int" } },
+        { name: "name", type: { Named: "String" } },
+        { name: "age", type: { Named: "Int" } },
+        { name: "address", type: { Named: "Address" } },
+        { name: "favorites", type: { List: { Named: "Book" } } }
+      ]
+    },
+    {
+      name: "Address",
+      fields: [
+        { name: "street", type: { Named: "String" } },
+        { name: "city", type: { Named: "String" } },
+        { name: "zip", type: { Named: "String" } }
+      ],
+      directives: [{ name: "embedded" }]
+    }
+  ],
+  indexes: [
+    {
+      name: "allBooks",
+      type: { List: { Named: "Book" } }
+    }
+  ]
+};
+
 const resolvers = {
   Query: {
-    books: faunaGraphQLClient.createRootResolver(dataModel, 'Book', 'books'),
-    members: faunaGraphQLClient.createRootResolver(dataModel, 'Member', 'members')
+    books: faunaGraphQLClient.createRootResolver(dataModel2, 'Book', 'books'),
+    members: faunaGraphQLClient.createRootResolver(dataModel2, 'Member', 'members')
   }
 };
 

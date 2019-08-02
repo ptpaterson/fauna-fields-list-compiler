@@ -31,6 +31,7 @@
     "apollo-server": "^2.6.9",
     "dotenv": "^8.0.0",
     "graphql": "^14.4.2",
+    "node-json-color-stringify": "^1.1.0",
     "nodemon": "^1.19.1",
     "tsdx": "^0.7.2",
     "typescript": "^3.5.3"

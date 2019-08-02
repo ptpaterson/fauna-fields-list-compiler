@@ -1,92 +1,168 @@
 import { query as q, Expr, ExprArg } from 'faunadb';
 
 // Types
-export type DataModel = {
-  [key: string]: {
-    fields: {
-      [key: string]: {
-        resolveType?: 'default' | 'ref' | string;
-        type: 'List' | string;
-        of?: string;
-      };
-    };
-  };
+export type DataModel = any;
+
+const getCollectionModel = (dataModel: DataModel, collectionName: string) => {
+  const collectionModel = dataModel.collections.find(
+    (collectionModel: any) => collectionModel.name === collectionName
+  );
+  if (!collectionModel) {
+    throw new Error(`Collection, ${collectionName}, not found in Data Model`);
+  }
+  return collectionModel;
+};
+
+const getFieldModel = (collectionModel: any, fieldName: string) => {
+  const fieldModel = collectionModel.fields.find(
+    (fieldModel: any) => fieldModel.name === fieldName
+  );
+  if (!fieldModel) {
+    throw new Error(`Field, ${fieldName}, not found in Collection, ${collectionModel.name}`);
+  }
+  return fieldModel;
+};
+
+const getDirectives = (model: any) => {
+  const directives = model.directives;
+  if (!directives) return {};
+
+  return directives.reduce(
+    (result: any, directive: any) => ({ ...result, [directive.name]: directive.args || {} }),
+    {}
+  );
 };
 
 export type QueryFields = {
   [key: string]: {} | QueryFields;
 };
 
-export type Compiler = (fields: QueryFields | undefined) => (value: Expr) => Expr;
+export type Compiler = (fields: QueryFields) => (value: Expr) => Expr;
+
+type FieldCompilerThunkMap = {
+  [key: string]: () => Compiler;
+};
 
 // Compilers
-const defaultCompiler: Compiler = () => value => value;
 
-export const createListCompiler = (compiler: Compiler): Compiler => (
-  fields: QueryFields | undefined
-) => (collection: ExprArg) => q.Map(collection, (ref: Expr) => compiler(fields)(ref));
+export const createListCompiler = (compiler: Compiler): Compiler => (fields: QueryFields) => (
+  collection: ExprArg
+) => q.Map(collection, (ref: Expr) => compiler(fields)(ref));
 
-export const createObjectCompiler = (dataModel: DataModel, className: string): Compiler => {
+export const createObjectCompiler = (
+  dataModel: DataModel,
+  collectionName: string,
+  parentFieldName?: string
+): Compiler => {
+  // get some required infos
+  const collectionModel = getCollectionModel(dataModel, collectionName);
+  const collectionDirectives = getDirectives(collectionModel);
+  const collectionIsEmbedded = typeof collectionDirectives.embedded !== "undefined";
+
   // thunk-ify Compilers and only resolve if needed.
   // Otherwise it would create an infinite loop due to circular references.
-  const fieldResolverThunkMap: {
-    [key: string]: () => Compiler;
-  } = Object.keys(dataModel[className].fields).reduce((result, key) => {
-    // Parse through the data model and build a map of compilers based on the
-    // field's type.  That compiler can then be selected via the fields-list.
+  const fieldCompilerThunkMap: FieldCompilerThunkMap = collectionModel.fields.reduce(
+    (result: any, fieldModel: any) => {
+      // Parse through the data model and build a map of compilers based on the
+      // field's type.  That compiler can then be selected via the fields-list.
 
-    const value = dataModel[className].fields[key];
-    const resolveType = value.resolveType || 'default';
-    const fieldName = key;
-    const fieldType = value.type;
-    const isList = fieldType === 'List';
-    const baseFieldType = isList ? value.of! : fieldType;
+      const fieldName = fieldModel.name;
+      const fieldTypeModel = fieldModel.type;
+      const isList = fieldTypeModel.List != undefined;
+      const baseFieldType = isList ? fieldTypeModel.List.Named : fieldTypeModel.Named;
 
-    const getfieldCompiler = (): Compiler =>
-      resolveType === 'default'
-        ? defaultCompiler
-        : resolveType === 'ref'
-        ? createObjectCompiler(dataModel, baseFieldType)
-        : defaultCompiler;
+      // if the base type is not one of the modeled fields, assume it's a scalar
+      const typeModel = dataModel.collections.find(
+        (collectionModel: any) => collectionModel.name === baseFieldType
+      );
+      if (!typeModel) return result;
 
-    const getMaybeListCompiler = () =>
-      isList ? createListCompiler(getfieldCompiler()) : getfieldCompiler();
-
-    return {
-      ...result,
-      [fieldName]: getMaybeListCompiler
-    };
-  }, {});
-
-  return fields => ref => {
-    const instance = q.Get(ref);
-
-    return Object.keys(fields || {}).reduce((result, key) => {
-      if (key === '_id') {
-        return {
-          ...result,
-          _id: q.Select(['id'], ref)
-        };
-      }
-
-      if (key === '_ts') {
-        return {
-          ...result,
-          _ts: q.Select(['ts'], instance)
-        };
-      }
-
-      const fieldType = dataModel[className].fields[key].type;
-      const isList = fieldType === 'List';
-      const selectExpr = isList
-        ? q.Select(['data', key], instance, [])
-        : q.Select(['data', key], instance, null as any);
-
+      // if not a scalar, build a compiler for the field
+      const getfieldCompiler = () => createObjectCompiler(dataModel, baseFieldType, fieldName);
+      const getMaybeListCompiler = () =>
+        isList ? createListCompiler(getfieldCompiler()) : getfieldCompiler();
       return {
         ...result,
-        [key]: fieldResolverThunkMap[key]()(fields![key])(selectExpr)
+        [fieldName]: getMaybeListCompiler
+      };
+    },
+    {}
+  );
+
+  return fields => ref => {
+    const instance = collectionIsEmbedded ? ref : q.Get(ref);
+
+    const inExpr = Object.keys(fields || {}).reduce((result, queryFieldName) => {
+      // **********************************************************************
+      // System types
+      if (queryFieldName === "_id") {
+        return {
+          ...result,
+          _id: q.Select(["id"], ref)
+        };
+      }
+      if (queryFieldName === "_ts") {
+        return {
+          ...result,
+          _ts: q.Select(["ts"], instance)
+        };
+      }
+
+      // **********************************************************************
+      // Application Types
+      const fieldModel = getFieldModel(collectionModel, queryFieldName);
+
+      const resolveTypeModel = fieldModel.type;
+      const resolveTypeIsList = resolveTypeModel.List != undefined;
+
+      // TODO: account for NotNull
+      const selectExpr = collectionIsEmbedded
+        ? resolveTypeIsList
+          ? q.Select([queryFieldName], instance, [])
+          : q.Select([queryFieldName], instance, null as any)
+        : resolveTypeIsList
+        ? q.Select(["data", queryFieldName], instance, [])
+        : q.Select(["data", queryFieldName], instance, null as any);
+
+      // for scalars
+      if (!fieldCompilerThunkMap[queryFieldName]) {
+        return {
+          ...result,
+          [queryFieldName]: selectExpr
+        };
+      }
+
+      // TODO: deal with NotNull
+      const resolveBaseTypeName = resolveTypeIsList
+        ? resolveTypeModel.List.Named
+        : resolveTypeModel.Named;
+      const resolveCollection = getCollectionModel(dataModel, resolveBaseTypeName);
+
+      const resolveTypeDirectives = getDirectives(resolveCollection);
+      const resolveTypeIsEmbedded = typeof resolveTypeDirectives.embedded !== "undefined";
+      const embeddedResult = q.Let(
+        {
+          parent: resolveTypeIsList
+            ? q.Select(["data", queryFieldName], instance, [])
+            : q.Select(["data", queryFieldName], instance, null as any)
+        },
+        q.If(
+          q.Equals([q.Var("parent"), null]),
+          null,
+          fieldCompilerThunkMap[queryFieldName]()(fields[queryFieldName])(q.Var("parent"))
+        )
+      );
+
+      // otherwise
+      return {
+        ...result,
+        [queryFieldName]: resolveTypeIsEmbedded
+          ? embeddedResult
+          : fieldCompilerThunkMap[queryFieldName]()(fields[queryFieldName])(selectExpr)
       };
     }, {});
+
+    return inExpr;
   };
 };
 
