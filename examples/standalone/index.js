@@ -12,34 +12,6 @@ const client = new Client({ secret: process.env.FAUNADB_SECRET });
 
 // define the data model
 const dataModel = {
-  Book: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      title: {},
-      author: { type: 'Member', resolveType: 'ref' }
-    }
-  },
-  Member: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      name: {},
-      age: {},
-      address: { type: 'Address' },
-      favorites: { type: 'List', of: 'Book', resolveType: 'ref' }
-    }
-  },
-  Address: {
-    fields: {
-      street: {},
-      city: {},
-      zip: {}
-    }
-  }
-};
-
-const dataModel2 = {
   collections: [
     {
       name: "Book",
@@ -80,7 +52,7 @@ const dataModel2 = {
 };
 
 // query a single object
-const memberCompiler = createObjectCompiler(dataModel2, 'Member');
+const memberCompiler = createObjectCompiler(dataModel, 'Member');
 const memberQueryFields = {
   _id: {},
   _ts: {},
@@ -107,7 +79,7 @@ client
   .catch(e => console.error(e));
 
 // Query Many
-const booksCompiler = createListCompiler(createObjectCompiler(dataModel2, 'Book'));
+const booksCompiler = createListCompiler(createObjectCompiler(dataModel, 'Book'));
 const bookQueryFields = {
   _id: {},
   title: {},
