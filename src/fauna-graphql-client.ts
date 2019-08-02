@@ -2,7 +2,8 @@ import { Client, query as q } from "faunadb";
 
 import graphqlQueryFields from "graphql-fields";
 
-import { createTopLevelCompiler, DataModel } from "./fauna-compilers";
+import { DataModel } from './datamodel'
+import { createTopLevelCompiler } from "./fauna-compilers";
 import { GraphQLFieldResolver } from "graphql";
 
 export class FaunaGraphQLClient {
