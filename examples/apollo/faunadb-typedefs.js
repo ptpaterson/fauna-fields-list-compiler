@@ -1,4 +1,4 @@
-const { SchemaBuilder } = require('../../dist');
+const { SchemaBuilder } = require('../../dist')
 const {
   embeddedType,
   collectionType,
@@ -6,18 +6,18 @@ const {
   listType,
   StringField,
   NumberField
-} = SchemaBuilder;
+} = SchemaBuilder
 
 const AddressTypeDef = embeddedType('Address', [
   { name: 'street', type: StringField },
   { name: 'city', type: StringField },
   { name: 'zip', type: StringField }
-]);
+])
 
 const BookTypeDef = collectionType('Book', [
   { name: 'title', type: StringField },
   { name: 'author', type: namedType('Member') }
-]);
+])
 
 const MemberTypeDef = collectionType('Member', [
   { name: 'name', type: StringField },
@@ -33,7 +33,7 @@ const MemberTypeDef = collectionType('Member', [
       index: 'relationships_out'
     }
   }
-]);
+])
 
 const HasRelationshipTypeDef = {
   kind: 'CollectionTypeDefinition',
@@ -43,13 +43,13 @@ const HasRelationshipTypeDef = {
     { name: 'to', type: namedType('Member') },
     { name: 'relationship', type: StringField }
   ]
-};
+}
 
 const typeDefs = [
   AddressTypeDef,
   BookTypeDef,
   MemberTypeDef,
   HasRelationshipTypeDef
-];
+]
 
-module.exports = typeDefs;
+module.exports = typeDefs

@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server');
+const { gql } = require('apollo-server')
 
 const typeDefs = gql`
   scalar Long
@@ -48,6 +48,6 @@ const typeDefs = gql`
     books: BookPage
     members: MemberPage
   }
-`;
+`
 
-module.exports = typeDefs;
+module.exports = typeDefs

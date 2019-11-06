@@ -1,25 +1,25 @@
-type $FixAny = any;
+type $FixAny = any
 
-import { Client, query as q } from 'faunadb';
+import { Client, query as q } from 'faunadb'
 
-import graphqlQueryFields from 'graphql-fields';
+import graphqlQueryFields from 'graphql-fields'
 
-import { FaunaDBCompiler } from './faunadb-compiler';
-import * as SelectionBuilder from './selection-builder';
-import { GraphQLFieldResolver } from 'graphql';
+import { FaunaDBCompiler } from './faunadb-compiler'
+import * as SelectionBuilder from './selection-builder'
+import { GraphQLFieldResolver } from 'graphql'
 
 interface FaunaGraphQLClientOptions {
-  client: Client;
-  typeDefs: $FixAny;
+  client: Client
+  typeDefs: $FixAny
 }
 
 export class FaunaGraphQLClient {
-  private client: Client;
-  private compiler: FaunaDBCompiler;
+  private client: Client
+  private compiler: FaunaDBCompiler
 
   constructor({ client, typeDefs }: FaunaGraphQLClientOptions) {
-    this.client = client;
-    this.compiler = new FaunaDBCompiler({ typeDefs });
+    this.client = client
+    this.compiler = new FaunaDBCompiler({ typeDefs })
   }
 
   createRootResolver(typeName: string, indexName: string) {
@@ -33,17 +33,17 @@ export class FaunaGraphQLClient {
       // const compiledQuery = compiler(graphqlQueryFields(info))(refs);
       // return this.client.query(compiledQuery);
 
-      const fields = graphqlQueryFields(info).data;
-      const selections = SelectionBuilder.fromGraphQLFieldsList(fields);
+      const fields = graphqlQueryFields(info).data
+      const selections = SelectionBuilder.fromGraphQLFieldsList(fields)
 
-      const baseQuery = q.Paginate(q.Match(q.Index(indexName)));
+      const baseQuery = q.Paginate(q.Match(q.Index(indexName)))
       const queryCompiler = this.compiler.getCollectionListCompiler(
         baseQuery,
         typeName
-      );
-      return this.client.query(queryCompiler(selections));
-    };
+      )
+      return this.client.query(queryCompiler(selections))
+    }
 
-    return resolver;
+    return resolver
   }
 }
