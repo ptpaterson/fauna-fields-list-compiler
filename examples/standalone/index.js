@@ -1,85 +1,72 @@
-// ENV
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-// External(ish) Packages
 const { query: q, Client } = require('faunadb');
-const { createObjectCompiler, createListCompiler, createPageCompiler } = require('../../dist');
+const { FaunaDBCompiler, SelectionBuilder } = require('../../dist');
+const { field } = SelectionBuilder;
 
 // Create the FaunaDB client
 const client = new Client({ secret: process.env.FAUNADB_SECRET });
 
 // define the data model
-const dataModel = {
-  Book: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      title: {},
-      author: { type: 'Member', resolveType: 'ref' }
-    }
-  },
-  Member: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      name: {},
-      age: {},
-      address: { type: 'Address' },
-      favorites: { type: 'List', of: 'Book', resolveType: 'ref' }
-    }
-  },
-  Address: {
-    fields: {
-      street: {},
-      city: {},
-      zip: {}
-    }
-  }
-};
+const faunadbTypeDefs = require('./faunadb-typedefs');
+const faunaDBCompiler = new FaunaDBCompiler({ typeDefs: faunadbTypeDefs });
 
+// *****************************************************************************
 // query a single object
-const memberCompiler = createObjectCompiler(dataModel, 'Member');
-const memberQueryFields = {
-  _id: {},
-  _ts: {},
-  name: {},
-  age: {},
-  address: {
-    street: {},
-    city: {},
-    zip: {}
-  },
-  favorites: {
-    title: {},
-    author: {
-      _id: {},
-      _ts: {},
-      name: {}
-    }
-  }
-};
-const memberRef = q.Ref(q.Collection('Member'), '238074476388942340');
+// *****************************************************************************
+// 1) Build compilers
+const memberRefBaseQuery = q.Ref(q.Collection('Member'), '238074476388942340');
+const memberCompiler = faunaDBCompiler.getCollectionCompiler(
+  memberRefBaseQuery,
+  'Member'
+);
+
+// 2) Create Selections
+const memberSelections = [
+  field('_id'),
+  field('_ts'),
+  field('name'),
+  field('age'),
+  field('address', [field('street'), field('city'), field('zip')]),
+  field('tags'),
+  field('favorites', [
+    field('title'),
+    field('author', [field('_id'), field('_ts'), field('name')])
+  ]),
+  field('relationships_out', [
+    field('relationship'),
+    field('to', [(field('_id'), field('_ts'), field('name'))])
+  ])
+];
+
+// 3) Run Query
+
 client
-  .query(memberCompiler(memberQueryFields)(memberRef))
+  .query(memberCompiler(memberSelections))
   .then(results => console.log(results))
   .catch(e => console.error(e));
 
+// *****************************************************************************
 // Query Many
-const booksCompiler = createListCompiler(createObjectCompiler(dataModel, 'Book'));
-const bookQueryFields = {
-  _id: {},
-  _ts: {},
-  title: {},
-  author: {
-    _id: {},
-    _ts: {},
-    name: {},
-    age: {}
-  }
-};
-const bookRefs = q.Paginate(q.Match(q.Index('books')));
+// *****************************************************************************
+// 1) Build compilers
+const booksListBaseQuery = q.Paginate(q.Match(q.Index('books')));
+const booksCompiler = faunaDBCompiler.getCollectionListCompiler(
+  booksListBaseQuery,
+  'Book'
+);
+
+// 2) Create Selections
+const booksSelections = [
+  field('_id'),
+  field('_ts'),
+  field('title'),
+  field('author', [field('_id'), field('_ts'), field('name')])
+];
+
+// 3) Run Query
 client
-  .query(booksCompiler(bookQueryFields)(bookRefs))
+  .query(booksCompiler(booksSelections))
   .then(results => console.log(results))
   .catch(e => console.error(e));

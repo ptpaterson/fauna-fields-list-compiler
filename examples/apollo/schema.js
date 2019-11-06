@@ -26,14 +26,22 @@ const typeDefs = gql`
     _ts: Long!
     name: String
     age: Int
+    tags: [String]
     favorites: [Book]
     address: Address
+    relationships_out: [HasRelationship]
   }
 
   type MemberPage {
     data: [Member!]!
     before: String
     after: String
+  }
+
+  type HasRelationship {
+    from: Member
+    to: Member
+    relationship: String
   }
 
   type Query {

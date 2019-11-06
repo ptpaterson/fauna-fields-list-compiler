@@ -1,52 +1,23 @@
-// ENV
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-// External(ish) Packages
 const { ApolloServer } = require('apollo-server');
 const { Client } = require('faunadb');
 const { FaunaGraphQLClient } = require('../../dist');
 
-// Internal Packages
-const typeDefs = require('./schema');
-
-// Create the FaunaDB client and put it in the library wrapper
-const client = new Client({ secret: process.env.FAUNADB_SECRET });
-const faunaGraphQLClient = new FaunaGraphQLClient(client);
-
 // TODO:  generate models from typeDefs, so we don't have to ourselves
-const dataModel = {
-  Book: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      title: {},
-      author: { type: 'Member', resolveType: 'ref' }
-    }
-  },
-  Member: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      name: {},
-      age: {},
-      address: { type: 'Address' },
-      favorites: { type: 'List', of: 'Book', resolveType: 'ref' }
-    }
-  },
-  Address: {
-    fields: {
-      street: {},
-      city: {},
-      zip: {}
-    }
-  }
-};
+const client = new Client({ secret: process.env.FAUNADB_SECRET });
+const faunadbTypeDefs = require('../standalone/faunadb-typedefs');
+const faunaGraphQLClient = new FaunaGraphQLClient({
+  client,
+  typeDefs: faunadbTypeDefs
+});
 
+const typeDefs = require('./schema');
 const resolvers = {
   Query: {
-    books: faunaGraphQLClient.createRootResolver(dataModel, 'Book', 'books'),
-    members: faunaGraphQLClient.createRootResolver(dataModel, 'Member', 'members')
+    books: faunaGraphQLClient.createRootResolver('Book', 'books'),
+    members: faunaGraphQLClient.createRootResolver('Member', 'members')
   }
 };
 
