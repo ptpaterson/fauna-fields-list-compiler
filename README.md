@@ -1,4 +1,4 @@
-# Fauna Fields List Compiler
+# Fauna Fields List Compile
 
 ![npm](https://img.shields.io/npm/v/fauna-fields-list-compile.svg)
 
@@ -40,7 +40,7 @@ const { Client } = require('faunadb');
 const {
   FaunaDBCompiler,
   SelectionBuilder
-} = require('fauna-fields-list-compiler');
+} = require('fauna-fields-list-compile');
 const client = new Client({ secret: process.env.FAUNADB_SECRET });
 
 // define the data model and create the compiler
@@ -101,7 +101,7 @@ The standalone usage can be applied to GraphQL resolver anywhere you like, but t
 
 ```js
 const { Client } = require('faunadb');
-const { FaunaGraphQLClient } = require('fauna-fields-list-compiler');
+const { FaunaGraphQLClient } = require('fauna-fields-list-compile');
 const client = new Client({ secret: process.env.FAUNADB_SECRET });
 
 // define the data model
@@ -146,7 +146,7 @@ The data model is made up of a list of type definitions. These will be
 A `SchemaBuilder` helper object is available to help build up types.
 
 ```js
-const { SchemaBuilder } = require('fauna-fields-list-compiler');
+const { SchemaBuilder } = require('fauna-fields-list-compile');
 const {
   collectionType,
   embeddedType,
