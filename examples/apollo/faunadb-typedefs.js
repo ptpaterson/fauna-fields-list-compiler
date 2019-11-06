@@ -45,11 +45,11 @@ const HasRelationshipTypeDef = {
   ]
 }
 
-const typeDefs = [
+const faunadbTypeDefs = [
   AddressTypeDef,
   BookTypeDef,
   MemberTypeDef,
   HasRelationshipTypeDef
 ]
 
-module.exports = typeDefs
+module.exports = faunadbTypeDefs

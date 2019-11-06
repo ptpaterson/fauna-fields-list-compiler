@@ -20,11 +20,11 @@ This project started off specifically as a way to compile GraphQL queries down t
 - [x] compile GraphQL query to single FQL query
 - [x] Typescript!
 - [x] resolve `_id` and `_ts` fields
+- [x] resolve reverse refs (index on other collection)
 - [ ] synchronize data model with Fauna gql meta objects.
 - [ ] authorization helpers.
   - [ ] login, logout
   - [ ] RBAC
-- [ ] resolve reverse refs (index on other collection)
 - [ ] converter for GraphQL Schema AST to data model
 - [ ] pluggable way to do resolvers/compilers with directives
 - [ ] interfaces & unions
@@ -36,61 +36,92 @@ The library provides functions that convert the data model into a recursive quer
 See the [full example](https://github.com/ptpaterson/fauna-fields-list-compiler/tree/master/examples/standalone).
 
 ```js
+const { Client } = require('faunadb');
 const {
-  createObjectCompiler,
-  createListCompiler,
-  createPageCompiler
+  FaunaDBCompiler,
+  SelectionBuilder
 } = require('fauna-fields-list-compiler');
+const client = new Client({ secret: process.env.FAUNADB_SECRET });
 
-// define the data model
-const dataModel = {
+// define the data model and create the compiler
+const faunadbTypeDefs = {
   /*...*/
 };
+const faunaDBCompiler = new FaunaDBCompiler({ typeDefs: faunadbTypeDefs });
 
-// Query a single object
-const memberCompiler = createObjectCompiler(dataModel, 'Member');
-const memberQueryFields = {
+// *****************************************************************************
+// query a single object
+// *****************************************************************************
+// 1) Build compilers
+const memberRefBaseQuery = q.Ref(q.Collection('Member'), '238074476388942340');
+const memberCompiler = faunaDBCompiler.getCollectionCompiler(
+  memberRefBaseQuery,
+  'Member'
+);
+
+// 2) Create Selections
+const memberSelections = [
   /*...*/
-};
-const memberRef = q.Ref(q.Collection('Member'), '238074476388942340');
+];
+
+// 3) Run Query
+
 client
-  .query(memberCompiler(memberQueryFields)(memberRef))
+  .query(memberCompiler(memberSelections))
   .then(results => console.log(results))
   .catch(e => console.error(e));
 
+// *****************************************************************************
 // Query Many
-const booksCompiler = createListCompiler(createObjectCompiler(dataModel, 'Book'));
-const bookQueryFields = {
+// *****************************************************************************
+// 1) Build compilers
+const booksListBaseQuery = q.Paginate(q.Match(q.Index('books')));
+const booksCompiler = faunaDBCompiler.getCollectionListCompiler(
+  booksListBaseQuery,
+  'Book'
+);
+
+// 2) Create Selections
+const booksSelections = [
   /*...*/
-};
-const bookRefs = q.Paginate(q.Match(q.Index('books')));
+];
+
+// 3) Run Query
 client
-  .query(booksCompiler(bookQueryFields)(bookRefs))
+  .query(booksCompiler(booksSelections))
   .then(results => console.log(results))
   .catch(e => console.error(e));
 ```
 
 ## GraphQL Usage
 
-A full [example with Apollo Server (V2.6)](https://github.com/ptpaterson/fauna-fields-list-compiler/tree/master/examples/apollo) shows how to use with GraphQL.
+A full [example with Apollo Server (V2.9)](https://github.com/ptpaterson/fauna-fields-list-compiler/tree/master/examples/apollo) shows how to use with GraphQL.
 
 The standalone usage can be applied to GraphQL resolver anywhere you like, but there is an additional helper to build root queries.
 
 ```js
 const { Client } = require('faunadb');
 const { FaunaGraphQLClient } = require('fauna-fields-list-compiler');
+const client = new Client({ secret: process.env.FAUNADB_SECRET });
+
+// define the data model
+const faunadbTypeDefs = {
+  /*...*/
+};
 
 // Create the FaunaDB client and put it in the library wrapper
-const client = new Client({ secret: process.env.FAUNADB_SECRET });
-const faunaGraphQLClient = new FaunaGraphQLClient(client);
+const faunaGraphQLClient = new FaunaGraphQLClient({
+  client,
+  typeDefs: faunadbTypeDefs
+});
 
 /*...*/
 
 // Define the graphQL resolvers
 const resolvers = {
   Query: {
-    books: faunaGraphQLClient.createRootResolver(dataModel, 'Book', 'books'),
-    members: faunaGraphQLClient.createRootResolver(dataModel, 'Member', 'members')
+    books: faunaGraphQLClient.createRootResolver('Book', 'books'),
+    members: faunaGraphQLClient.createRootResolver('Member', 'members')
   }
 };
 
@@ -101,74 +132,143 @@ const resolvers = {
 
 The data model is a stripped down version of the database schema. The following data model is used in the examples:
 
+> Version 0.4.0 included breaking changes in the data model. Helper functions are provided to build up the new format. These changes are making it easier to extend the types of relationships possible between types.
+
+### Type Definitions
+
+The data model is made up of a list of type definitions. These will be
+
+- Collection Types
+- Embedded Types
+- Interfaces
+- Unions
+
+A `SchemaBuilder` helper object is available to help build up types.
+
 ```js
-const dataModel = {
-  Book: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      title: {},
-      author: { type: 'Member', resolveType: 'ref' }
-    }
-  },
-  Member: {
-    fields: {
-      _id: { type: 'ID' },
-      _ts: {},
-      name: {},
-      age: {},
-      address: { type: 'Address' },
-      favorites: { type: 'List', of: 'Book', resolveType: 'ref' }
-    }
-  },
-  Address: {
-    fields: {
-      street: {},
-      city: {},
-      zip: {}
+const { SchemaBuilder } = require('fauna-fields-list-compiler');
+const {
+  collectionType,
+  embeddedType,
+  listType,
+  namedType,
+  NumberField,
+  StringField
+} = SchemaBuilder;
+
+const MemberTypeDef = collectionType(/*...*/);
+const BookTypeDef = collectionType(/*...*/);
+const HasRelationshipTypeDef = collectionType(/*...*/);
+const AddressTypeDef = embeddedType(/*...*/);
+
+const faunadbTypeDefs = [
+  AddressTypeDef,
+  BookTypeDef,
+  MemberTypeDef,
+  HasRelationshipTypeDef
+];
+```
+
+### Collection References
+
+The default compiler for a collection type expands a `Ref` or a list of `Ref`s. Nothing more is needed than something like the following:
+
+```js
+const BookTypeDef = collectionType('Book', [
+  { name: 'title', type: StringField },
+  { name: 'author', type: namedType('Member') }
+]);
+```
+
+### Match Index Relationship
+
+a compiler override can be specified for collection type fields.
+
+define an index like:
+
+```js
+q.CreateIndex({
+  name: 'relationships_out',
+  source: q.Class('HasRelationship'),
+  terms: [{ field: ['data', 'from'] }]
+});
+```
+
+Then the following will work to create a link from the `Member` type to the `HasRelationship` type.
+
+```js
+const MemberTypeDef = collectionType('Member', [
+  /*...*/
+  {
+    name: 'relationships_out',
+    type: listType(namedType('HasRelationship')),
+    resolver: {
+      kind: 'matchRefResolver',
+      index: 'relationships_out'
     }
   }
+]);
+
+const HasRelationshipTypeDef = {
+  kind: 'CollectionTypeDefinition',
+  name: 'HasRelationship',
+  fields: [
+    { name: 'from', type: namedType('Member') },
+    { name: 'to', type: namedType('Member') },
+    { name: 'relationship', type: StringField }
+  ]
 };
 ```
 
-## Fields List
+this corresponds to the following GraphQL
 
-The fields list is a map of the fields that you want selected.
+```graphql
+type Member {
+  _id: ID!
+  _ts: Long!
+  # ...
+  relationships_out: [HasRelationship]
+}
 
-The format is the same as the output from node package [`graphql-fields`](https://www.npmjs.com/package/graphql-fields). `graphql-fields` is built in to the `FaunaGraphQLClient` helper class that is a part of this library.
+type HasRelationship {
+  from: Member
+  to: Member
+  relationship: String
+}
+```
+
+## Selections
+
+The selection set is a kind of map of the fields that you want queried.
+
+> Version 0.4.0 included breaking changes to `Selections` (formerly `Fields List`). Helper functions are provided to build up the new format. The new format will allow the addition of type conditions, i.e. interfaces and unions!
 
 The following are used in the examples
 
 ```js
-const memberQueryFields = {
-  _id: {},
-  _ts: {},
-  name: {},
-  age: {},
-  address: {
-    street: {},
-    city: {},
-    zip: {}
-  },
-  favorites: {
-    title: {},
-    author: {
-      _id: {},
-      _ts: {},
-      name: {}
-    }
-  }
-};
+const memberSelections = [
+  field('_id'),
+  field('_ts'),
+  field('name'),
+  field('age'),
+  field('address', [field('street'), field('city'), field('zip')]),
+  field('tags'),
+  field('favorites', [
+    field('title'),
+    field('author', [field('_id'), field('_ts'), field('name')])
+  ]),
+  field('relationships_out', [
+    field('relationship'),
+    field('to', [(field('_id'), field('_ts'), field('name'))])
+  ])
+];
 
-const bookQueryFields = {
-  _id: {},
-  _ts: {},
-  title: {},
-  author: {
-    _id: {},
-    _ts: {},
-    name: {},
-    age: {}
-  }
-};
+const booksSelections = [
+  field('_id'),
+  field('_ts'),
+  field('title'),
+  field('author', [field('_id'), field('_ts'), field('name')])
+];
 ```
+
+The format is the nolonger the same as the output from node package [`graphql-fields`](https://www.npmjs.com/package/graphql-fields). However, a helper method is provided to convert from `graphql-fields`. This is what is used internally in `FaunaGraphQLClient`.
