@@ -10,8 +10,6 @@
   "files": [
     "/dist"
   ],
-  "umd:main": "dist/faunadb-scaffold.umd.production.js",
-  "module": "dist/faunadb-scaffold.es.production.js",
   "typings": "dist/index.d.ts",
   "scripts": {
     "example-apollo": "nodemon node ./examples/apollo/server.js",
