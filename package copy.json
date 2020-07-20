@@ -1,6 +1,6 @@
 {
   "name": "fauna-fields-list-compile",
-  "version": "0.5.0",
+  "version": "0.4.1",
   "description": "A POC for a GraphQL to FaunaDB FQL compiler and general utility to produce FaunaDB queries from a fields list.",
   "repository": {
     "type": "git",
@@ -16,35 +16,32 @@
   "scripts": {
     "example-apollo": "nodemon node ./examples/apollo/server.js",
     "example-standalone": "node ./examples/standalone/index.js",
-    "build": "tsc",
-    "buildw": "tsc -w",
-    "clean": "rimraf dist/*",
-    "lint": "eslint .",
-    "postbuild": "prettier --write \"./build/**/*.{js,ts}\"",
-    "prebuild": "npm run clean"
+    "start": "tsdx watch",
+    "build": "tsdx build"
   },
   "author": "Paul Paterson",
   "license": "MIT",
-  "keywords": [
-    "faunadb",
-    "graphql"
-  ],
   "dependencies": {
-    "eslint": "^7.4.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "faunadb": "^2.14.2",
-    "graphql": "^14.7.0",
-    "graphql-fields": "^2.0.3",
-    "nodemon": "^2.0.4",
-    "prettier": "^2.0.5",
-    "typescript": "^3.9.7"
+    "faunadb": "^2.9.3",
+    "graphql-fields": "^2.0.3"
   },
   "devDependencies": {
     "@types/graphql-fields": "^1.3.2",
-    "@typescript-eslint/eslint-plugin": "^3.6.1",
-    "@typescript-eslint/parser": "^3.6.1",
-    "apollo-server": "^2.16.0",
-    "dotenv": "^8.2.0"
-  }
+    "@typescript-eslint/eslint-plugin": "^2.6.1",
+    "@typescript-eslint/parser": "^2.6.1",
+    "apollo-server": "^2.9.7",
+    "dotenv": "^8.2.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "graphql": "^14.5.8",
+    "nodemon": "^2.0.4",
+    "prettier": "^1.18.2",
+    "tsdx": "^0.11.0",
+    "typescript": "^3.7.2"
+  },
+  "keywords": [
+    "faunadb",
+    "graphql"
+  ]
 }

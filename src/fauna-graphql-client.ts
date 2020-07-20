@@ -1,9 +1,7 @@
 type $FixAny = any
 
 import { Client, query as q } from 'faunadb'
-
-import graphqlQueryFields from 'graphql-fields'
-
+import * as graphqlQueryFields from 'graphql-fields'
 import { FaunaDBCompiler } from './faunadb-compiler'
 import * as SelectionBuilder from './selection-builder'
 import { GraphQLFieldResolver } from 'graphql'
